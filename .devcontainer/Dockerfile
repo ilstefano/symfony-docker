@@ -1,0 +1,53 @@
+FROM php:8-fpm-alpine as runtime
+
+RUN apk update \
+  && apk add --no-cache curl make coreutils icu-libs icu-dev libzip-dev libxslt-dev php-mysqli php-pdo_mysql postgresql-dev libpng-dev
+
+RUN NPROC=$(grep -c ^processor /proc/cpuinfo 2>/dev/null || 1) \
+    && docker-php-ext-install -j${NPROC} zip intl xsl mysqli pdo_mysql pdo_pgsql gd
+
+FROM runtime AS build
+
+# add composer for building
+RUN echo "$(curl -sS https://composer.github.io/installer.sig) -" > composer-setup.php.sig \
+    && curl -sS https://getcomposer.org/installer | tee composer-setup.php | sha384sum -c composer-setup.php.sig \
+    && php composer-setup.php && rm composer-setup.php* \
+    && chmod +x composer.phar && mv composer.phar /usr/local/bin/composer 
+
+FROM build AS dev
+
+RUN apk add --no-cache $PHPIZE_DEPS 
+
+# add xdebug, see https://xdebug.org/docs/install#source
+RUN curl -sS https://xdebug.org/files/xdebug-3.1.4.tgz | tar xz \
+    && cd xdebug-3.1.4 \
+    && phpize \
+    && ./configure --enable-xdebug \
+    && make && make install \
+    && docker-php-ext-enable xdebug
+
+RUN curl -L -sS https://github.com/symfony-cli/symfony-cli/releases/download/v5.4.8/symfony-cli_5.4.8_x86_64.apk -o /tmp/symfony.apk \
+    && apk add --no-cache --allow-untrusted /tmp/symfony.apk \
+    && rm /tmp/symfony.apk
+
+RUN apk add --no-cache bash git docker-cli docker-cli-compose yarn sudo
+    # https://docs.docker.com/compose/cli-command/#compose-switch
+RUN curl -fL https://raw.githubusercontent.com/docker/compose-switch/master/install_on_linux.sh -o dc.sh
+RUN chmod +x dc.sh && sed -i 's/set -e/#set -e/' dc.sh
+RUN ./dc.sh > /dev/null 2>&1 && rm dc.sh
+
+ARG userid=1000 # symfony-user-id-which-should-exist
+ARG user=symfony-user-who-should-exist
+
+# if user with id uid doesnt exist add her
+RUN id -u $userid > /dev/null 2>&1 || adduser -D -s /bin/bash -u $userid $user \
+    && echo "$user  ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+
+ARG dockergid
+RUN addgroup -g ${dockergid} docker && addgroup $user docker
+
+COPY --chown=$user:$user bashrc /home/$user/.bashrc
+COPY docker-php-ext-xdebug.ini /usr/local/etc/php/conf.d
+COPY docker-php-ext-opcache.ini /usr/local/etc/php/conf.d
+
+USER $user
