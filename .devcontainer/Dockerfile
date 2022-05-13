@@ -30,7 +30,7 @@ RUN curl -L -sS https://github.com/symfony-cli/symfony-cli/releases/download/v5.
     && apk add --no-cache --allow-untrusted /tmp/symfony.apk \
     && rm /tmp/symfony.apk
 
-RUN apk add --no-cache bash git docker-cli docker-cli-compose yarn sudo
+RUN apk add --no-cache bash git git-bash-completion docker-cli docker-cli-compose yarn sudo
     # https://docs.docker.com/compose/cli-command/#compose-switch
 RUN curl -fL https://raw.githubusercontent.com/docker/compose-switch/master/install_on_linux.sh -o dc.sh
 RUN chmod +x dc.sh && sed -i 's/set -e/#set -e/' dc.sh
