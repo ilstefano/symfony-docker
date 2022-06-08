@@ -19,8 +19,9 @@ FROM build AS dev
 RUN apk add --no-cache $PHPIZE_DEPS 
 
 # add xdebug, see https://xdebug.org/docs/install#source
-RUN curl -sS https://xdebug.org/files/xdebug-3.1.4.tgz | tar xz \
-    && cd xdebug-3.1.4 \
+ARG XDEBG_REL=3.1.5
+RUN curl -sS https://xdebug.org/files/xdebug-${XDEBG_REL}.tgz | tar xz \
+    && cd xdebug-${XDEBG_REL} \
     && phpize \
     && ./configure --enable-xdebug \
     && make && make install \
