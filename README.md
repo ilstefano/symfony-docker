@@ -4,7 +4,7 @@ This is a base PHP-Symfony development environment for e.g. the [Symfony Fast Tr
 
 ## Preliminaries
 
-Your host must have docker installed. Whether your host is Linux or WSL or Mac doesn't matter.
+Your host must have ```docker``` and ```docker compose``` installed. Whether your host is Linux or WSL or Mac doesn't matter.
 
 ## Usage
 
@@ -21,7 +21,7 @@ If you use another IDE (like PHPStorm) please try to find out yourself how the d
 We need to inject build args via the ```.env``` file first, such that the container user will be the same as in the host and has access to the hosts's docker engine:
 
 ```bash
-cd .devcontainer
+cd .docker
 echo "USERID=$(id -u)" > .env
 echo "DOCKERGID=$(getent group docker | cut -d: -f3)" >> .env
 echo "USER=${USER}" >> .env
@@ -30,7 +30,7 @@ echo "USER=${USER}" >> .env
 ### CLI
 
 ```bash
-# in .devcontainer
+# in .docker
 
 docker compose build
 docker compose run app bash
@@ -39,7 +39,7 @@ docker compose run app bash
 Or you run the app conatiner detached and enter it as you want:
 
 ```bash
-# in .devcontainer
+# in .docker
 
 docker compose up -d
 
