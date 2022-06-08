@@ -49,4 +49,12 @@ COPY --chown=$user:$user bashrc /home/$user/.bashrc
 COPY docker-php-ext-xdebug.ini /usr/local/etc/php/conf.d
 COPY docker-php-ext-opcache.ini /usr/local/etc/php/conf.d
 
+# install symfony CLI
+ARG SYM_REL=5.4.10
+ARG SYM_REP=https://github.com/symfony-cli/symfony-cli/releases/download
+ARG SYM_ARCH=x86_64
+RUN curl -L -sS ${SYM_REP}/v${SYM_REL}/symfony-cli_${SYM_REL}_${SYM_ARCH}.apk -o /tmp/symfony.apk \
+    && apk add --no-cache --allow-untrusted /tmp/symfony.apk \
+    && rm /tmp/symfony.apk
+
 USER $user
