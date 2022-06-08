@@ -25,7 +25,8 @@ RUN curl -sS https://xdebug.org/files/xdebug-${XDEBG_REL}.tgz | tar xz \
     && phpize \
     && ./configure --enable-xdebug \
     && make && make install \
-    && docker-php-ext-enable xdebug
+    && docker-php-ext-enable xdebug \
+    && cd .. && rm -rf xdebug-${XDEBG_REL}
 
 # add tools
 RUN apk add --no-cache bash git git-bash-completion docker-cli docker-cli-compose yarn sudo
@@ -35,13 +36,13 @@ RUN chmod +x dc.sh && sed -i 's/set -e/#set -e/' dc.sh
 RUN ./dc.sh > /dev/null 2>&1 && rm dc.sh
 
 # if user with id uid doesnt exist add her
-ARG userid=1000 # symfony-user-id-which-should-exist
-ARG user=symfony-user-who-should-exist
+ARG userid=1000 # symfony-user-id-which-should-exist-on-host
+ARG user=symfony-user-who-should-exist-on-host
 RUN id -u $userid > /dev/null 2>&1 || adduser -D -s /bin/bash -u $userid $user \
     && echo "$user  ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # give user docker permissions
-ARG dockergid
+ARG dockergid=1000 # docker-gid-which-should-exist-on-host
 RUN addgroup -g ${dockergid} docker && addgroup $user docker
 
 # customize xdebugging
@@ -58,3 +59,4 @@ RUN curl -L -sS ${SYM_REP}/v${SYM_REL}/symfony-cli_${SYM_REL}_${SYM_ARCH}.apk -o
     && rm /tmp/symfony.apk
 
 USER $user
+RUN cp /usr/share/bash-completion/completions/git ~/git-completion.bash && echo ". ~/git-completion.bash" >> ~/.bashrc
