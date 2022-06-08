@@ -23,14 +23,14 @@ We need to inject build args via the ```.env``` file first, such that the contai
 ```bash
 cd .devcontainer
 echo "USERID=$(id -u)" > .env
-echo "DOCKERGID="$(getent group docker | cut -d: -f3)" >> .env
+echo "DOCKERGID=$(getent group docker | cut -d: -f3)" >> .env
 echo "USER=${USER}" >> .env
 ```
 
 ### CLI
 
 ```bash
-# in .devconatiner
+# in .devcontainer
 
 docker compose build
 docker compose run app bash
@@ -39,7 +39,7 @@ docker compose run app bash
 Or you run the app conatiner detached and enter it as you want:
 
 ```bash
-# in .devconatiner
+# in .devcontainer
 
 docker compose up -d
 
